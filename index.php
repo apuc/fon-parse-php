@@ -22,6 +22,7 @@ $parser = new FonbetParser();
 $parser->createFirefoxRemoteDriver();
 $result = $parser->searchMatch($title, $coeffs);
 if ($result) {
+    $result = (object) $result;
     $msg = date('Y-m-d H:i:s')." - ".$result->title." : ".array_reduce(
         array_keys($result->coeffs),
         function ($carry, $key) use ($result) {

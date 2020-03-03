@@ -2,6 +2,7 @@
 namespace Parser;
 
 use Facebook\WebDriver\Exception\NoSuchElementException;
+use Facebook\WebDriver\JavaScriptExecutor;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\WebDriverBy;
@@ -45,32 +46,11 @@ class FonbetParser
             $this->driver->wait(120)->
                             until(WebDriverExpectedCondition::visibilityOfAnyElementLocated(
                                 WebDriverBy::className("table__row")));
-            $table_rows = $this->driver->findElements(WebDriverBy::className("table__row"));
-            foreach($table_rows as $row) {
-                try {
-                    $title = $row->findElement(WebDriverBy::className("table__match-title-text"))->getText();
-                    if ($title == $search_title) {
-                        $elem_coeffs = $row->findElements(WebDriverBy::className("_type_btn"));
-                        $coeffs = [];
-                        foreach ($search_coeffs as $coeff) {
-                            $coeffs[$coeff] = $elem_coeffs[$coeff - 1]->getText();
-                            if (!$coeffs[$coeff]) {
-                                $coeffs[$coeff] = "Пусто";
-                            }
-                        }
-                        $result = new \stdClass();
-                        $result->title = $title;
-                        $result->coeffs = $coeffs;
-                        break;
-                    }
-                } catch (NoSuchElementException $exc) {
-                    continue;
-                }
-            }
+            $file = file_get_contents(__DIR__."/parser.js");
+            $result = $this->driver->executeScript($file, [$search_title, $search_coeffs]);
         } catch (\Throwable $exc) {
             die(json_encode(['status' => 500, 'msg' => $exc->getMessage()]));
         }
         return $result;
     }
-
 }
